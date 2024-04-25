@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D _rbody;
 
     private float horizontalMove;
+    private bool isFacingRight = true;
 
     [SerializeField] private float speed = 10f;
 
@@ -26,5 +27,18 @@ public class PlayerMovement : MonoBehaviour
     {
         horizontalMove = Input.GetAxis("Horizontal");
         _rbody.velocity = new Vector2(horizontalMove * speed, _rbody.velocity.y);
+
+        Flip();
+    }
+
+    void Flip()
+    {
+        if (isFacingRight && horizontalMove < 0f || !isFacingRight && horizontalMove > 0f) 
+        {
+            Vector3 localScale = transform.localScale;
+            isFacingRight = !isFacingRight;
+            localScale.x *= -1f;
+            transform.localScale = localScale;
+        }
     }
 }
