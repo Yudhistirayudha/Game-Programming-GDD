@@ -15,6 +15,12 @@ public class Movement : MonoBehaviour
     [Header("Jumping")]
     public float jumpPower = 10f;
 
+
+    [Header("GroundCheck")]
+    public Transform groundCheckPos;
+    public Vector2 groundCheckSize = new Vector2(0.5f, 0.5f);
+    public LayerMask groundLayer;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -34,7 +40,23 @@ public class Movement : MonoBehaviour
 
     public void Jump(InputAction.CallbackContext context)
     {
-        if (context.performed)
-            _rbody.velocity = new Vector2(_rbody.velocity.x, jumpPower);
+        if (isGrounded())
+            if (context.performed)
+                _rbody.velocity = new Vector2(_rbody.velocity.x, jumpPower);
+    }
+
+    private bool isGrounded()
+    {
+        if (Physics2D.OverlapBox(groundCheckPos.position, groundCheckSize, 0, groundLayer))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(groundCheckPos.position, groundCheckSize);
     }
 }
