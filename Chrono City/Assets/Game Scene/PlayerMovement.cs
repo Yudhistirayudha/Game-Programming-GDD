@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Properties;
 using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -45,6 +46,13 @@ public class Movement : MonoBehaviour
     public float wallSlideSpeed = 2f;
     bool isWallSliding;
 
+    // Wall Jump Feature
+    bool isWallJumping;
+    float wallJumpDir;
+    float wallJumpTime = 0.5f;
+    float wallJumpTimer;
+    public Vector2 wallJumpPower = new Vector2(3f, 10f);
+
     // Start is called before the first frame update
     void Start()
     {
@@ -54,11 +62,16 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        _rbody.velocity = new Vector2(horizontalMovement * speed, _rbody.velocity.y);
         GroundCheck();
         Gravity();
-        Flip();
         WallSlide();
+        WallJump();
+
+        if (!isWallJumping)
+        {
+            _rbody.velocity = new Vector2(horizontalMovement * speed, _rbody.velocity.y);
+            Flip();
+        }
     }
 
     private void Flip() // Flip the character when facing right or left
@@ -85,6 +98,23 @@ public class Movement : MonoBehaviour
                 _rbody.velocity = new Vector2(_rbody.velocity.x, jumpPower);
                 jumpsRemaining--;
             }
+        if (context.performed && wallJumpTimer > 0f)
+        {
+            isWallJumping = true;
+            _rbody.velocity = new Vector2 (wallJumpDir * wallJumpPower.x, wallJumpPower.y); // Jump Away From Wall
+            wallJumpTimer = 0;
+
+            // Force Flip
+            if(transform.localScale.x != wallJumpDir)
+            {
+                isFacingRight = !isFacingRight;
+                Vector3 ls = transform.localScale;
+                ls.x *= -1f;
+                transform.localScale = ls;
+            }
+
+            Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f); // Wall Jump = 0.5f -- Jump Again = 0.06f
+        }
     }
 
     private void GroundCheck() // Ground Check Method
@@ -131,6 +161,27 @@ public class Movement : MonoBehaviour
         {
             isWallSliding = false;
         }
+    }
+
+    private void WallJump()
+    {
+        if (isWallSliding)
+        {
+            isWallJumping = false;
+            wallJumpDir = -transform.localScale.x;
+            wallJumpTimer = wallJumpTime;
+
+            CancelInvoke(nameof(CancelWallJump));
+        }
+        else if (wallJumpTimer > 0f)
+        {
+            wallJumpTimer -= Time.deltaTime;
+        }
+    }
+
+    private void CancelWallJump()
+    {
+        isWallJumping = false;
     }
 
     private void OnDrawGizmos() // Drawing Transparent Cube (Deleted When Game is Builded)
