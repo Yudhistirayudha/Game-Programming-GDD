@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Properties;
-using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Movement : MonoBehaviour
 {
     public Rigidbody2D _rbody;
+    public Animator _animator;
 
     bool isFacingRight = true;
 
@@ -38,7 +37,7 @@ public class Movement : MonoBehaviour
     // Wall Check Feature
     [Header("WallCheck")]
     public Transform wallCheckPos;
-    public Vector2 wallCheckSize = new Vector2(0.05f, 2.65f);
+    public Vector2 wallCheckSize = new Vector2(0.1f, 2.46f);
     public LayerMask wallLayer;
 
     // Wall Slide Feature
@@ -51,12 +50,13 @@ public class Movement : MonoBehaviour
     float wallJumpDir;
     float wallJumpTime = 0.5f;
     float wallJumpTimer;
-    public Vector2 wallJumpPower = new Vector2(3f, 10f);
+    public Vector2 wallJumpPower = new Vector2(0.5f, 11f);
 
     // Start is called before the first frame update
     void Start()
     {
-
+        _rbody = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -72,6 +72,10 @@ public class Movement : MonoBehaviour
             _rbody.velocity = new Vector2(horizontalMovement * speed, _rbody.velocity.y);
             Flip();
         }
+
+        _animator.SetFloat("yVelocity", _rbody.velocity.y);
+        _animator.SetFloat("Magnitude", _rbody.velocity.magnitude);
+
     }
 
     private void Flip() // Flip the character when facing right or left
@@ -97,15 +101,17 @@ public class Movement : MonoBehaviour
             {
                 _rbody.velocity = new Vector2(_rbody.velocity.x, jumpPower);
                 jumpsRemaining--;
+                _animator.SetTrigger("Jump");
             }
         if (context.performed && wallJumpTimer > 0f)
         {
             isWallJumping = true;
             _rbody.velocity = new Vector2 (wallJumpDir * wallJumpPower.x, wallJumpPower.y); // Jump Away From Wall
             wallJumpTimer = 0;
+            _animator.SetTrigger("Jump");
 
             // Force Flip
-            if(transform.localScale.x != wallJumpDir)
+            if (transform.localScale.x != wallJumpDir)
             {
                 isFacingRight = !isFacingRight;
                 Vector3 ls = transform.localScale;
