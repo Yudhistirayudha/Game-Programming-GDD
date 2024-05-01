@@ -62,6 +62,9 @@ public class Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        _animator.SetFloat("yVelocity", _rbody.velocity.y);
+        _animator.SetFloat("Magnitude", _rbody.velocity.magnitude);
+
         GroundCheck();
         Gravity();
         WallSlide();
@@ -72,9 +75,6 @@ public class Movement : MonoBehaviour
             _rbody.velocity = new Vector2(horizontalMovement * speed, _rbody.velocity.y);
             Flip();
         }
-
-        _animator.SetFloat("yVelocity", _rbody.velocity.y);
-        _animator.SetFloat("Magnitude", _rbody.velocity.magnitude);
 
     }
 
