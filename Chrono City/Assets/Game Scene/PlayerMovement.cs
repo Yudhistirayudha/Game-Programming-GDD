@@ -1,3 +1,4 @@
+using Autodesk.Fbx;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,6 +15,14 @@ public class Movement : MonoBehaviour
     [Header("Movement")]
     public float speed = 5f;
     float horizontalMovement;
+
+    [Header("Dash")]
+    public float dashSpeed = 50f;
+    public float dashDuration = 0.1f;
+    public float dashCooldown = 0.1f;
+    bool canDash = true;
+    bool isDashing;
+    TrailRenderer _trailRenderer;
 
     // Jump & Double Jump Feature 
     [Header("Jumping")]
@@ -57,6 +66,7 @@ public class Movement : MonoBehaviour
     {
         _rbody = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
+        _trailRenderer = GetComponent<TrailRenderer>();
     }
 
     // Update is called once per frame
@@ -64,6 +74,11 @@ public class Movement : MonoBehaviour
     {
         _animator.SetFloat("yVelocity", _rbody.velocity.y);
         _animator.SetFloat("Magnitude", _rbody.velocity.magnitude);
+
+        if (isDashing)
+        {
+            return;
+        }
 
         GroundCheck();
         Gravity();
@@ -92,6 +107,12 @@ public class Movement : MonoBehaviour
     public void Move(InputAction.CallbackContext context) // Input for Movement || Movement Method
     {
         horizontalMovement = context.ReadValue<Vector2>().x;
+    }
+
+    public void Dash(InputAction.CallbackContext context) // Input for Dash
+    {
+        if (context.performed && canDash)
+            StartCoroutine(Dash());
     }
 
     public void Jump(InputAction.CallbackContext context) // Input for Jump || Jump Method & Double Jump Method
@@ -188,6 +209,28 @@ public class Movement : MonoBehaviour
     private void CancelWallJump()
     {
         isWallJumping = false;
+    }
+
+    private IEnumerator Dash()
+    {
+        canDash = false;
+        isDashing = true;
+
+        _trailRenderer.emitting = true;
+        float dashDir = isFacingRight ? 1f : -1f;
+
+        _rbody.velocity = new Vector2(dashDir * dashSpeed, _rbody.velocity.y); //Dash Movement
+
+        yield return new WaitForSeconds(dashDuration);
+
+        _rbody.velocity = new Vector2(0f, _rbody.velocity.y); //Reset horizontal velocity
+
+        isDashing = false;
+        _trailRenderer.emitting = false;
+
+        yield return new WaitForSeconds(dashCooldown);
+        canDash = true;
+
     }
 
     private void OnDrawGizmos() // Drawing Transparent Cube (Deleted When Game is Builded)
