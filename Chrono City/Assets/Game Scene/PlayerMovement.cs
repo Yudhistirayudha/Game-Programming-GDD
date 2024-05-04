@@ -33,7 +33,7 @@ public class Movement : MonoBehaviour
     // Ground Check Feature
     [Header("GroundCheck")]
     public Transform groundCheckPos;
-    public Vector2 groundCheckSize = new Vector2(0.82f, 0.07f);
+    public Vector2 groundCheckSize = new Vector2(0.7f, 0.04f);
     public LayerMask groundLayer;
     bool isGrounded;
 
@@ -46,12 +46,12 @@ public class Movement : MonoBehaviour
     // Wall Check Feature
     [Header("WallCheck")]
     public Transform wallCheckPos;
-    public Vector2 wallCheckSize = new Vector2(0.1f, 2.46f);
+    public Vector2 wallCheckSize = new Vector2(0.04f, 1.15f);
     public LayerMask wallLayer;
 
     // Wall Slide Feature
     [Header("WallMovement")]
-    public float wallSlideSpeed = 2f;
+    public float wallSlideSpeed = 3f;
     bool isWallSliding;
 
     // Wall Jump Feature
@@ -59,7 +59,7 @@ public class Movement : MonoBehaviour
     float wallJumpDir;
     float wallJumpTime = 0.5f;
     float wallJumpTimer;
-    public Vector2 wallJumpPower = new Vector2(0.5f, 11f);
+    public Vector2 wallJumpPower = new Vector2(3f, 11f);
 
     // Start is called before the first frame update
     void Start()
@@ -88,20 +88,22 @@ public class Movement : MonoBehaviour
         if (!isWallJumping)
         {
             _rbody.velocity = new Vector2(horizontalMovement * speed, _rbody.velocity.y);
-            Flip();
+            if (horizontalMovement > 0 && !isFacingRight)
+            {
+                Flip();
+            }
+            else if (horizontalMovement < 0 && isFacingRight)
+            {
+                Flip();
+            }
         }
 
     }
 
     private void Flip() // Flip the character when facing right or left
     {
-        if (isFacingRight && horizontalMovement < 0 || !isFacingRight && horizontalMovement > 0)
-        {
-            isFacingRight = !isFacingRight;
-            Vector3 ls = transform.localScale;
-            ls.x *= -1f;
-            transform.localScale = ls;
-        }
+        isFacingRight = !isFacingRight;
+        transform.Rotate(0f, 180f, 0f);
     }
 
     public void Move(InputAction.CallbackContext context) // Input for Movement || Movement Method
@@ -135,9 +137,7 @@ public class Movement : MonoBehaviour
             if (transform.localScale.x != wallJumpDir)
             {
                 isFacingRight = !isFacingRight;
-                Vector3 ls = transform.localScale;
-                ls.x *= -1f;
-                transform.localScale = ls;
+                transform.Rotate(0f, 180f, 0f);
             }
 
             Invoke(nameof(CancelWallJump), wallJumpTime + 0.1f); // Wall Jump = 0.5f -- Jump Again = 0.06f
